@@ -1,0 +1,7 @@
+{
+  "name": "Copy of Boss Assistant",
+  "description": "A versatile AI assistant powered by Gemini 2.5 Live API for HR, Social Media, and General tasks.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}
