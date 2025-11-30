@@ -7,9 +7,33 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       // 1. Polyfill process for browser environment safely
-      // We check if process exists first to avoid overwriting injected env vars (like API_KEY)
       window.process = window.process || {};
       window.process.env = window.process.env || {};
+      
+      // Attempt to retrieve API Key from potential global injections
+      // This helps when the environment injects the key into window but not process.env directly
+      const potentialKeys = [
+        window.API_KEY,
+        window.REACT_APP_API_KEY,
+        window.GOOGLE_API_KEY,
+        window.GEMINI_API_KEY,
+        window.NEXT_PUBLIC_API_KEY,
+        window.VITE_API_KEY
+      ];
+
+      if (!window.process.env.API_KEY) {
+        const foundKey = potentialKeys.find(key => key && typeof key === 'string');
+        if (foundKey) {
+          window.process.env.API_KEY = foundKey;
+        }
+      }
+
+      if (window.process.env.API_KEY) {
+        console.log("API Key configured successfully.");
+      } else {
+        console.warn("API Key not found in environment variables. Please check your deployment configuration.");
+      }
+
       if (!window.process.env.NODE_ENV) {
         window.process.env.NODE_ENV = 'production';
       }
