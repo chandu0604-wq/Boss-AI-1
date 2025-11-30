@@ -6,12 +6,13 @@
     <title>Boss Assistant - AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // 1. Polyfill process for browser environment to prevent crashes
-      window.process = {
-        env: {
-          NODE_ENV: 'production'
-        }
-      };
+      // 1. Polyfill process for browser environment safely
+      // We check if process exists first to avoid overwriting injected env vars (like API_KEY)
+      window.process = window.process || {};
+      window.process.env = window.process.env || {};
+      if (!window.process.env.NODE_ENV) {
+        window.process.env.NODE_ENV = 'production';
+      }
       
       tailwind.config = {
         darkMode: 'class',
