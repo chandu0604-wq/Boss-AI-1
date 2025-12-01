@@ -39,7 +39,8 @@ import {
   Linkedin,
   Youtube,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 
 // --- DATA & CONFIG ---
@@ -592,7 +593,7 @@ const App: React.FC = () => {
         setChatHistory(prev => [...prev, {
             id: Date.now().toString(),
             role: 'model',
-            text: "🚨 API Key is missing. I cannot reply. Please check your deployment settings. Ensure your environment variable is named VITE_API_KEY or REACT_APP_API_KEY.",
+            text: "🚨 API Key is missing. I cannot reply.\n\nDeployment Fix:\n1. Go to Vercel/Netlify Dashboard\n2. Add Environment Variable: VITE_API_KEY\n3. Value: Your Gemini API Key\n4. Redeploy the app.",
             timestamp: new Date()
         }]);
         return;
@@ -855,9 +856,11 @@ const App: React.FC = () => {
 
         {/* API KEY MISSING WARNING */}
         {apiKeyMissing && (
-            <div className="bg-red-500 text-white px-4 py-2 text-center text-sm font-bold flex items-center justify-center animate-pulse">
-                <AlertTriangle size={16} className="mr-2" />
-                API_KEY not found in environment. Please set VITE_API_KEY in your deployment settings.
+            <div className="bg-red-600 text-white px-4 py-3 text-center text-sm font-medium flex items-center justify-center animate-in slide-in-from-top-2">
+                <AlertTriangle size={18} className="mr-2" />
+                <span>
+                   <strong className="font-bold">Missing API Key:</strong> In your Vercel Project Settings, add <code>VITE_API_KEY</code> = <code>your_gemini_key</code> and redeploy.
+                </span>
             </div>
         )}
 
