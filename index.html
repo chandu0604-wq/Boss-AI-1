@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -21,17 +22,19 @@
         window.VITE_API_KEY
       ];
 
+      // If process.env.API_KEY is missing, try to find it elsewhere
       if (!window.process.env.API_KEY) {
         const foundKey = potentialKeys.find(key => key && typeof key === 'string');
         if (foundKey) {
           window.process.env.API_KEY = foundKey;
+          console.log("[Setup] API Key found in global variables and polyfilled.");
         }
       }
 
       if (window.process.env.API_KEY) {
-        console.log("API Key configured successfully.");
+        console.log("[Setup] API Key configured successfully.");
       } else {
-        console.warn("API Key not found in environment variables. Please check your deployment configuration.");
+        console.warn("[Setup] API Key not found in initial environment. Application will check for VITE_ or REACT_APP_ prefixes at runtime.");
       }
 
       if (!window.process.env.NODE_ENV) {

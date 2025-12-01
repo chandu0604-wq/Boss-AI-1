@@ -1,7 +1,9 @@
+
 import { useState, useRef, useCallback } from 'react';
 import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
 import { ConnectionState } from '../types';
 import { pcmToGeminiBlob, base64ToBytes, decodeAudioData } from '../utils/audioUtils';
+import { getApiKey } from '../utils/env';
 
 const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-09-2025';
 const INPUT_SAMPLE_RATE = 16000;
@@ -76,9 +78,9 @@ export const useLiveSession = () => {
       setConnectionState(ConnectionState.CONNECTING);
       setError(null);
 
-      const apiKey = process.env.API_KEY;
+      const apiKey = getApiKey();
       if (!apiKey) {
-        throw new Error("API_KEY is missing. Please check your environment configuration.");
+        throw new Error("API_KEY is missing. Please set REACT_APP_API_KEY, VITE_API_KEY, or NEXT_PUBLIC_API_KEY in your deployment environment variables.");
       }
 
       // Initialize Audio Contexts
@@ -150,8 +152,8 @@ export const useLiveSession = () => {
           speechConfig: {
             voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } }, 
           },
-          // Format system instruction as a Content object to avoid Network Errors during handshake
-          systemInstruction: { parts: [{ text: systemInstructionText }] },
+          // CRITICAL FIX: systemInstruction must be a string for valid WebSocket handshake
+          systemInstruction: systemInstructionText,
         },
         callbacks: {
           onopen: () => {
@@ -222,7 +224,7 @@ export const useLiveSession = () => {
           },
           onerror: (err) => {
             console.error("Gemini Live Error:", err);
-            setError("Connection error. Ensure API key is valid.");
+            setError("Network Error: Check API Key & Permissions.");
             disconnect();
           }
         }

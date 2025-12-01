@@ -1,9 +1,11 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { useLiveSession } from './hooks/useLiveSession';
 import AudioVisualizer from './components/AudioVisualizer';
 import { ConnectionState } from './types';
 import { GoogleGenAI, Modality } from '@google/genai';
 import { base64ToBytes, decodeAudioData } from './utils/audioUtils';
+import { getApiKey } from './utils/env';
 import { 
   Mic, 
   Menu, 
@@ -36,7 +38,8 @@ import {
   Twitter,
   Linkedin,
   Youtube,
-  Trash2
+  Trash2,
+  AlertTriangle
 } from 'lucide-react';
 
 // --- DATA & CONFIG ---
@@ -242,6 +245,7 @@ const App: React.FC = () => {
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [currentView, setCurrentView] = useState<'hub' | 'chat'>('hub');
+  const [apiKeyMissing, setApiKeyMissing] = useState(false);
   
   // Initialize sessions from LocalStorage
   const [pastSessions, setPastSessions] = useState<ChatSession[]>(() => {
@@ -293,6 +297,12 @@ const App: React.FC = () => {
     if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
         setIsDarkMode(true);
         document.documentElement.classList.add('dark');
+    }
+    
+    // Check API Key
+    const key = getApiKey();
+    if (!key) {
+        setApiKeyMissing(true);
     }
   }, []);
 
@@ -519,7 +529,10 @@ const App: React.FC = () => {
     setPlayingMessageId(id);
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+        const apiKey = getApiKey();
+        if (!apiKey) throw new Error("API Key missing");
+
+        const ai = new GoogleGenAI({ apiKey });
         const response = await ai.models.generateContent({
             model: "gemini-2.5-flash-preview-tts",
             contents: [{ parts: [{ text: text }] }],
@@ -563,12 +576,25 @@ const App: React.FC = () => {
     } catch (e) {
         console.error("TTS Error", e);
         setPlayingMessageId(null);
-        alert("Unable to generate audio at this time.");
+        alert("Unable to generate audio. Please check API key.");
     }
   };
 
   const handleSendMessage = async () => {
     if (!inputText.trim() && !selectedFile) return;
+
+    // Check Key
+    const apiKey = getApiKey();
+    if (!apiKey) {
+        setApiKeyMissing(true);
+        setChatHistory(prev => [...prev, {
+            id: Date.now().toString(),
+            role: 'model',
+            text: "🚨 API Key is missing. I cannot reply. Please check your deployment settings.",
+            timestamp: new Date()
+        }]);
+        return;
+    }
 
     let attachmentUrl = undefined;
     if (selectedFile) {
@@ -612,7 +638,7 @@ const App: React.FC = () => {
     }
 
     try {
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+        const ai = new GoogleGenAI({ apiKey });
         
         let messageParts: any[] = [];
         
@@ -822,6 +848,14 @@ const App: React.FC = () => {
                 </button>
             </div>
         </header>
+
+        {/* API KEY MISSING WARNING */}
+        {apiKeyMissing && (
+            <div className="bg-red-500 text-white px-4 py-2 text-center text-sm font-bold flex items-center justify-center animate-pulse">
+                <AlertTriangle size={16} className="mr-2" />
+                API_KEY not found in environment. Please deploy with valid keys.
+            </div>
+        )}
 
         {/* CONTENT AREA */}
         <main className="flex-1 overflow-y-auto min-h-0 p-4 sm:p-8 pb-40 sm:pb-48 scroll-smooth z-0" ref={chatContainerRef}>
