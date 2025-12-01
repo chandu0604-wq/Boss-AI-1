@@ -303,6 +303,8 @@ const App: React.FC = () => {
     const key = getApiKey();
     if (!key) {
         setApiKeyMissing(true);
+    } else {
+        setApiKeyMissing(false);
     }
   }, []);
 
@@ -590,10 +592,12 @@ const App: React.FC = () => {
         setChatHistory(prev => [...prev, {
             id: Date.now().toString(),
             role: 'model',
-            text: "🚨 API Key is missing. I cannot reply. Please check your deployment settings.",
+            text: "🚨 API Key is missing. I cannot reply. Please check your deployment settings. Ensure your environment variable is named VITE_API_KEY or REACT_APP_API_KEY.",
             timestamp: new Date()
         }]);
         return;
+    } else {
+        setApiKeyMissing(false);
     }
 
     let attachmentUrl = undefined;
@@ -853,7 +857,7 @@ const App: React.FC = () => {
         {apiKeyMissing && (
             <div className="bg-red-500 text-white px-4 py-2 text-center text-sm font-bold flex items-center justify-center animate-pulse">
                 <AlertTriangle size={16} className="mr-2" />
-                API_KEY not found in environment. Please deploy with valid keys.
+                API_KEY not found in environment. Please set VITE_API_KEY in your deployment settings.
             </div>
         )}
 
